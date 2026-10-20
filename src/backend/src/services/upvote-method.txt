@@ -1,0 +1,28 @@
+// Add this to reportService.js
+
+async upvoteReport(reportId, userId) {
+  const report = await reportModel.getReportById(reportId);
+  if (!report) throw new Error('Report not found');
+
+  const upvotes = report.upvotes || [];
+  
+  // Check if user already upvoted
+  if (upvotes.find(u => u.userId === userId)) {
+    throw new Error('You have already upvoted this report');
+  }
+
+  upvotes.push({
+    userId,
+    timestamp: new Date().toISOString()
+  });
+
+  // Increase priority with upvotes
+  const newPriority = (report.priority || 0) + 0.5;
+
+  await reportModel.updateReport(reportId, { 
+    upvotes,
+    priority: newPriority
+  });
+
+  return await reportModel.getReportById(reportId);
+}
